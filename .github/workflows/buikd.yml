@@ -21,40 +21,38 @@ jobs:
 
     - name: Preparar Arquivos e Encontrar o Projeto
       run: |
-        # 1. Descompacta qualquer ZIP que esteja na raiz (caso você tenha subido o ZIP)
+        # 1. Descompacta qualquer ZIP que esteja na raiz
         unzip -q *.zip -d . || true
 
-        # 2. Encontra a pasta onde está o settings.gradle (o coração do projeto)
-        # Se estiver na raiz, ele retorna ".", se estiver em subpasta, ele acha a subpasta.
+        # 2. Encontra a pasta onde está o settings.gradle
         PROJ_DIR=$(find . -name "settings.gradle" -exec dirname {} \; | head -n 1)
         echo "O projeto está na pasta: $PROJ_DIR"
         echo "PROJ_DIR=$PROJ_DIR" >> $GITHUB_ENV
 
-        # 3. Baixa o gradlew oficial e as configurações ausentes
+        # 3. Baixa o gradlew oficial
         wget -q https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.2.0/forge-1.20.1-47.2.0-mdk.zip -O mdk.zip
         unzip -q mdk.zip -d temp_mdk
         
-        # Copia o gradlew para a pasta correta do seu projeto
-        cp temp_mdk/gradlew $PROJ_DIR/
-        cp temp_mdk/gradlew.bat $PROJ_DIR/
+        # 4. Copia o gradlew usando ASPAS (para resolver o problema do espaço em "New Folder")
+        cp temp_mdk/gradlew "$PROJ_DIR/"
+        cp temp_mdk/gradlew.bat "$PROJ_DIR/"
         
-        # Cria a pasta gradle/wrapper e copia os arquivos
-        mkdir -p $PROJ_DIR/gradle/wrapper
-        cp temp_mdk/gradle/wrapper/gradle-wrapper.jar $PROJ_DIR/gradle/wrapper/
-        cp temp_mdk/gradle/wrapper/gradle-wrapper.properties $PROJ_DIR/gradle/wrapper/
+        # 5. Cria a pasta gradle/wrapper e copia os arquivos
+        mkdir -p "$PROJ_DIR/gradle/wrapper"
+        cp temp_mdk/gradle/wrapper/gradle-wrapper.jar "$PROJ_DIR/gradle/wrapper/"
+        cp temp_mdk/gradle/wrapper/gradle-wrapper.properties "$PROJ_DIR/gradle/wrapper/"
         
-        # Dá permissão de execução
-        chmod +x $PROJ_DIR/gradlew
+        # 6. Dá permissão de execução
+        chmod +x "$PROJ_DIR/gradlew"
 
     - name: Compilar com Gradle
       run: |
-        # Entra na pasta do projeto e compila
-        cd ${{ env.PROJ_DIR }}
+        # Entra na pasta e compila usando aspas
+        cd "${{ env.PROJ_DIR }}"
         ./gradlew build
 
     - name: Salvar o arquivo .jar
       uses: actions/upload-artifact@v4
       with:
         name: Valdoria-Mod
-        # Procura o .jar em qualquer lugar do projeto
         path: "**/build/libs/*.jar"
