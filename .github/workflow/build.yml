@@ -8,23 +8,42 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup Java 17
+    - name: Baixar o código do repositório
+      uses: actions/checkout@v4
+
+    - name: Configurar o Java 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-        
-    # ADICIONE ESTAS DUAS LINHAS AQUI:
+
+    # AQUI ELE VAI DESCOMPACTAR O SEU ZIP
+    - name: Descompactar o projeto ZIP
+      run: |
+        # Procura qualquer arquivo .zip e extrai na pasta atual
+        for file in *.zip; do
+          if [ -f "$file" ]; then
+            echo "Descompactando $file..."
+            unzip -q "$file" -d .
+          fi
+        done
+
     - name: Dar permissão ao gradlew
-      run: chmod +x gradlew
-    # ------------------------------
-      
-    - name: Build
-      run: ./gradlew build
-    - name: Upload JAR
+      # Se o zip extraiu uma pasta dentro (ex: pasta/src), ele procura o gradlew
+      run: |
+        find . -name "gradlew" -exec chmod +x {} \;
+
+    - name: Compilar com Gradle
+      # Aqui ele encontra onde o gradlew foi extraído e roda o build
+      run: |
+        cd $(find . -name "gradlew" -exec dirname {} \; | head -n 1)
+        ./gradlew build
+
+    - name: Salvar o arquivo .jar compilado
       uses: actions/upload-artifact@v4
       with:
-        name: valdorianrpg
-        path: build/libs/*.jar
+        name: Valdoria-Mod
+        # Ele procura o .jar em qualquer subpasta build/libs
+        path: "**/build/libs/*.jar"
