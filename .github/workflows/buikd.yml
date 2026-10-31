@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Baixar o código do repositório
+    - name: Baixar o seu código do repositório
       uses: actions/checkout@v4
 
     - name: Configurar o Java 17
@@ -19,31 +19,26 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # AQUI ELE VAI DESCOMPACTAR O SEU ZIP
-    - name: Descompactar o projeto ZIP
+    - name: Baixar o gradlew ausente e preparar
       run: |
-        # Procura qualquer arquivo .zip e extrai na pasta atual
-        for file in *.zip; do
-          if [ -f "$file" ]; then
-            echo "Descompactando $file..."
-            unzip -q "$file" -d .
-          fi
-        done
-
-    - name: Dar permissão ao gradlew
-      # Se o zip extraiu uma pasta dentro (ex: pasta/src), ele procura o gradlew
-      run: |
-        find . -name "gradlew" -exec chmod +x {} \;
+        # Baixa o projeto oficial da Forge apenas para pegar o gradlew perdido
+        wget -q https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.2.0/forge-1.20.1-47.2.0-mdk.zip -O mdk.zip
+        unzip -q mdk.zip -d temp_mdk
+        
+        # Copia o gradlew e a pasta gradle/wrapper do oficial para o seu projeto
+        cp temp_mdk/gradlew .
+        cp temp_mdk/gradlew.bat .
+        mkdir -p gradle/wrapper
+        cp temp_mdk/gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
+        
+        # Dá permissão de execução
+        chmod +x gradlew
 
     - name: Compilar com Gradle
-      # Aqui ele encontra onde o gradlew foi extraído e roda o build
-      run: |
-        cd $(find . -name "gradlew" -exec dirname {} \; | head -n 1)
-        ./gradlew build
+      run: ./gradlew build
 
-    - name: Salvar o arquivo .jar compilado
+    - name: Salvar o arquivo .jar
       uses: actions/upload-artifact@v4
       with:
         name: Valdoria-Mod
-        # Ele procura o .jar em qualquer subpasta build/libs
-        path: "**/build/libs/*.jar"
+        path: build/libs/*.jar
