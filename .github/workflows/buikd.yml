@@ -19,17 +19,20 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Baixar o gradlew ausente e preparar
+    - name: Baixar o gradlew e as configurações ausentes
       run: |
-        # Baixa o projeto oficial da Forge apenas para pegar o gradlew perdido
+        # Baixa o projeto oficial da Forge para pegar os arquivos que o celular apagou
         wget -q https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.2.0/forge-1.20.1-47.2.0-mdk.zip -O mdk.zip
         unzip -q mdk.zip -d temp_mdk
         
-        # Copia o gradlew e a pasta gradle/wrapper do oficial para o seu projeto
+        # Copia o gradlew e o gradlew.bat
         cp temp_mdk/gradlew .
         cp temp_mdk/gradlew.bat .
+        
+        # Cria a pasta gradle/wrapper e copia os DOIS arquivos necessários (o .jar e o .properties)
         mkdir -p gradle/wrapper
         cp temp_mdk/gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
+        cp temp_mdk/gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
         
         # Dá permissão de execução
         chmod +x gradlew
